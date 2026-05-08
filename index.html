@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西班牙语全能语法引擎 v12.3 修正版</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --purple: #8B5CF6;
+            --mutation: #EA580C;
+            --dark: #1E293B;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+            --text: #1F2937;
+            --muted: #6B7280;
+            --line: #E5E7EB;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 40px 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { max-width: 1050px; width: 100%; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin-bottom: 8px; }
+        .header p { color: var(--muted); margin: 0; font-weight: 600; }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            background: var(--card);
+            color: var(--muted);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 14px;
+        }
+
+        .nav-btn:hover { transform: translateY(-1px); color: var(--dark); }
+        .nav-btn.active { background: var(--dark); color: white; }
+
+        .panel {
+            display: none;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .principle-card {
+            background: #F8FAFC;
+            border-left: 5px solid var(--accent);
+            padding: 22px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+
+        .principle-card h4 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 19px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .principle-card p { margin: 10px 0; }
+        .principle-card.blue-theme { border-left-color: var(--primary); background: #EEF2FF; }
+        .principle-card.blue-theme h4 { color: var(--primary); }
+        .principle-card.purple-theme { border-left-color: var(--purple); background: #F5F3FF; }
+        .principle-card.purple-theme h4 { color: var(--purple); }
+        .principle-card.dark-theme { border-left-color: var(--dark); background: #F1F5F9; }
+        .principle-card.dark-theme h4 { color: var(--dark); }
+
+        .example-tag {
+            background: #E5E7EB;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #1F2937;
+            border: 1px solid #D1D5DB;
+            white-space: nowrap;
+        }
+
+        .highlight-text { color: var(--primary); font-weight: bold; }
+        .highlight-mut { color: var(--mutation); font-weight: 900; }
+
+        .table-container { overflow-x: auto; margin-bottom: 20px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            min-width: 560px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--line);
+            vertical-align: top;
+        }
+
+        th {
+            background: #F9FAFB;
+            font-size: 14px;
+            color: #4B5563;
+            text-align: center;
+        }
+
+        td.center-text, th.center-text { text-align: center; vertical-align: middle; }
+        .highlight-blue { font-weight: 800; color: var(--primary); font-size: 1.15em; }
+        .highlight-green { font-weight: 800; color: var(--secondary); font-size: 1.15em; }
+        .highlight-purple { font-weight: 800; color: var(--purple); font-size: 1.15em; }
+        .highlight-dark { font-weight: 800; color: var(--dark); font-size: 1.15em; }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 25px;
+            border: 2px solid #F3F4F6;
+            border-radius: 12px;
+            background: #F9FAFB;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            border: 2px solid #D1D5DB;
+            border-radius: 10px;
+            font-size: 22px;
+            outline: none;
+            text-align: center;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        input[type="radio"] { margin-right: 6px; transform: translateY(1px); }
+
+        .radio-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-weight: bold;
+            font-size: 18px;
+            flex-wrap: wrap;
+        }
+
+        .result-display {
+            text-align: center;
+            padding: 30px;
+            background: #EEF2FF;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 2px dashed var(--primary);
+        }
+
+        .dynamic-word {
+            font-size: clamp(34px, 7vw, 56px);
+            font-weight: 800;
+            color: #1E1B4B;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .result-article { color: var(--dark); margin-right: 0.2em; }
+        .suffix { color: var(--primary); }
+
+        .hint-line {
+            min-height: 22px;
+            color: #4B5563;
+            font-size: 14px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .hint-line strong { color: var(--dark); }
+        .warning-text { color: var(--mutation); font-weight: 800; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media(max-width: 800px) {
+            body { padding: 24px 12px; }
+            .panel { padding: 18px; border-radius: 12px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .radio-row { gap: 18px; font-size: 16px; }
+            table { min-width: 520px; }
+        }
+
+        .sub-principle {
+            font-size: 14px;
+            color: #4B5563;
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 5px 0;
+            border: 1px solid var(--line);
+        }
+
+        .mini-note {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .verb-note {
+            color: var(--mutation);
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 20px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🇪🇸 西班牙语全能语法引擎</h1>
+        <p>词法推演 · 句法顺序 · 修正版 (v12.3)</p>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" onclick="showTab('tab1', this)">1. 冠词与指示词</button>
+        <button class="nav-btn" onclick="showTab('tab-ser', this)">2. Ser 与 Estar</button>
+        <button class="nav-btn" onclick="showTab('tab2', this)">3. 名词生成器</button>
+        <button class="nav-btn" onclick="showTab('tab3', this)">4. 规则动词推演</button>
+        <button class="nav-btn" onclick="showTab('tab-irreg', this)">5. 不规则特例</button>
+        <button class="nav-btn" onclick="showTab('tab-order', this)">6. 语法顺序与省略</button>
+        <button class="nav-btn" onclick="showTab('tab-questions', this)">7. 核心疑问词</button>
+    </div>
+
+    <div id="tab1" class="panel active">
+        <h3>常用定语对照表</h3>
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th>类别</th>
+                    <th>👨 阳性单数</th>
+                    <th>👩 阴性单数</th>
+                    <th>👨‍👨‍👦 阳性复数</th>
+                    <th>👩‍👩‍👧 阴性复数</th>
+                </tr>
+                <tr>
+                    <td class="center-text">定冠词 (特指: The)</td>
+                    <td class="center-text highlight-blue">el</td>
+                    <td class="center-text highlight-blue">la</td>
+                    <td class="center-text highlight-blue">los</td>
+                    <td class="center-text highlight-blue">las</td>
+                </tr>
+                <tr>
+                    <td class="center-text">不定冠词 (泛指: A/Some)</td>
+                    <td class="center-text highlight-blue">un</td>
+                    <td class="center-text highlight-blue">una</td>
+                    <td class="center-text highlight-blue">unos</td>
+                    <td class="center-text highlight-blue">unas</td>
+                </tr>
+                <tr>
+                    <td class="center-text">指示词 (近: 这个)</td>
+                    <td class="center-text highlight-blue">este</td>
+                    <td class="center-text highlight-blue">esta</td>
+                    <td class="center-text highlight-blue">estos</td>
+                    <td class="center-text highlight-blue">estas</td>
+                </tr>
+                <tr>
+                    <td class="center-text">指示词 (中: 那个)</td>
+                    <td class="center-text highlight-blue">ese</td>
+                    <td class="center-text highlight-blue">esa</td>
+                    <td class="center-text highlight-blue">esos</td>
+                    <td class="center-text highlight-blue">esas</td>
+                </tr>
+                <tr>
+                    <td class="center-text">指示词 (远: 那远处的)</td>
+                    <td class="center-text highlight-blue">aquel</td>
+                    <td class="center-text highlight-blue">aquella</td>
+                    <td class="center-text highlight-blue">aquellos</td>
+                    <td class="center-text highlight-blue">aquellas</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-ser" class="panel">
+        <div class="principle-card blue-theme">
+            <h4>💡 Ser / Estar / Haber：三个高频“存在感”动词</h4>
+            <p><strong>ser 是一个动词原形（Infinitivo）。</strong> 它相当于英语里的 <strong>to be</strong>，真正造句时通常要按主语变位。</p>
+
+            <div class="sub-principle">
+                <strong>1. Ser 就等于英语里的 "to be"</strong><br>
+                英语里不会说 "I to be a student"，而是说 "I <strong>am</strong> a student"。西语同理。<br>
+                • <span class="example-tag">ser</span> 是原形 (to be)<br>
+                • <span class="example-tag">soy, eres, es, somos, sois, son</span> 是它的现在时变位
+            </div>
+
+            <div class="sub-principle">
+                <strong>2. 原形什么时候出场？—— 一个简单谓语通常只变一个核心动词</strong><br>
+                当另一个动词已经变位，后面的动词经常保持原形。<br>
+                • <strong>单动词</strong>：El acuerdo <span class="highlight-text">es</span> válido. (该协议是有效的。)<br>
+                • <strong>双动词连用</strong>：El acuerdo debe <span class="highlight-text">ser</span> válido. (该协议必须是有效的。)
+            </div>
+
+            <div class="sub-principle">
+                <strong>3. Estar 是什么？—— “处在某种状态/位置”</strong><br>
+                <span class="example-tag">estar</span> 也是动词原形，也常翻成“是/在”，但它主要表达<strong>状态、位置、临时情况</strong>。<br>
+                • <span class="example-tag">El contrato está listo.</span> = 合同准备好了。强调当前状态。<br>
+                • <span class="example-tag">El documento está en la mesa.</span> = 文件在桌上。强调位置。<br>
+                • “它”也按第三人称单数走：<span class="example-tag">Está aquí.</span> = 它在这里。
+            </div>
+
+            <div class="sub-principle">
+                <strong>4. Haber 是什么？—— 现代常用核心是 hay</strong><br>
+                <span class="example-tag">haber</span> 本身是动词原形。现在时里你最常用到的是非人称形式 <span class="example-tag">hay</span>，表示“有/存在”。<br>
+                它不是按 <span class="example-tag">yo/tú/él</span> 去变的普通人称动词；不管后面是一个东西还是多个东西，都用 <span class="example-tag">hay</span>。
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="table-container">
+                <h4 style="text-align:center; color: var(--primary);">Ser (本质、身份、属性)</h4>
+                <table>
+                    <tr><td class="center-text">我 (yo)</td><td class="center-text highlight-blue">soy</td></tr>
+                    <tr><td class="center-text">你 (tú)</td><td class="center-text highlight-blue">eres</td></tr>
+                    <tr><td class="center-text">他/她/它/您 (él/ella/ello/usted)</td><td class="center-text highlight-blue">es</td></tr>
+                    <tr><td class="center-text">我们 (nosotros)</td><td class="center-text highlight-blue">somos</td></tr>
+                    <tr><td class="center-text">你们 (vosotros)</td><td class="center-text highlight-blue">sois</td></tr>
+                    <tr><td class="center-text">他们/她们/您们 (ellos/ellas/ustedes)</td><td class="center-text highlight-blue">son</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center; color: var(--secondary);">Estar (状态、位置、临时情况)</h4>
+                <table>
+                    <tr><td class="center-text">我 (yo)</td><td class="center-text highlight-green">estoy</td></tr>
+                    <tr><td class="center-text">你 (tú)</td><td class="center-text highlight-green">estás</td></tr>
+                    <tr><td class="center-text">他/她/它/您 (él/ella/ello/usted)</td><td class="center-text highlight-green">está</td></tr>
+                    <tr><td class="center-text">我们 (nosotros)</td><td class="center-text highlight-green">estamos</td></tr>
+                    <tr><td class="center-text">你们 (vosotros)</td><td class="center-text highlight-green">estáis</td></tr>
+                    <tr><td class="center-text">他们/她们/您们 (ellos/ellas/ustedes)</td><td class="center-text highlight-green">están</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="principle-card blue-theme">
+            <h4>💡 Haber / Hay：表示“有/存在”，不是 estar 的普通变位</h4>
+            <p><strong>hay</strong> 来自动词 <span class="example-tag">haber</span> 的非人称用法，意思是“有、存在”。它不跟着东西的单复数或阴阳性变化。</p>
+            <div class="sub-principle">
+                • <span class="example-tag">Hay un documento en la mesa.</span> = 桌上有一份文件。<br>
+                • <span class="example-tag">Hay dos documentos en la mesa.</span> = 桌上有两份文件。<br>
+                两句都用 <strong>hay</strong>，不会因为 <span class="example-tag">documento/documentos</span> 改成别的形式。
+            </div>
+            <div class="sub-principle">
+                <strong>Hay vs. Estar</strong><br>
+                • <span class="example-tag">Hay un cliente en la oficina.</span> = 办公室里有一位客户。强调“存在”。<br>
+                • <span class="example-tag">El cliente está en la oficina.</span> = 那位客户在办公室。强调“已知的人在哪里”。
+            </div>
+            <div class="sub-principle">
+                <strong>最实用的判断法</strong><br>
+                • 第一次提到“有某物/某人”：多用 <span class="example-tag">hay</span>。<br>
+                • 已经知道这个东西/人，只说它在哪里或状态如何：多用 <span class="example-tag">estar</span>。<br>
+                • 说身份、本质、国籍、职业、材料等稳定属性：多用 <span class="example-tag">ser</span>。
+            </div>
+        </div>
+    </div>
+
+    <div id="tab2" class="panel">
+        <div class="principle-card">
+            <h4>💡 名词性数：规则推测 + 常见例外</h4>
+            <p><strong>1. 阴阳性规律 (只能作为推测)</strong>：<br>
+               • 多数 <span class="example-tag">-o</span> 结尾为阳性：<span class="example-tag">documento</span>。<br>
+               • 多数 <span class="example-tag">-a</span> 结尾为阴性：<span class="example-tag">firma</span>。<br>
+               • <span class="example-tag">-ción, -dad, -tad, -tud</span> 多为阴性；<span class="example-tag">-ma</span> 希腊来源词常为阳性，如 <span class="example-tag">el problema</span>。
+            </p>
+            <p><strong>2. 单复数变形逻辑</strong>：<br>
+               • 元音结尾：加 <span class="example-tag">-s</span>，如 <span class="example-tag">socio → socios</span>。<br>
+               • 辅音结尾：加 <span class="example-tag">-es</span>，如 <span class="example-tag">papel → papeles</span>。<br>
+               • <span class="example-tag">z</span> 结尾：变 <span class="example-tag">ces</span>，如 <span class="example-tag">luz → luces</span>。<br>
+               • 重音可能增减：<span class="example-tag">resumen → resúmenes</span>，<span class="example-tag">resolución → resoluciones</span>。
+            </p>
+        </div>
+        <div class="input-section">
+            <input type="text" id="nounInput" placeholder="试输入: cliente, luz, resumen, problema, mano" oninput="runNoun()">
+            <div class="radio-row">
+                <label><input type="radio" name="n_num" value="s" checked onchange="runNoun()"> 👤 单数</label>
+                <label><input type="radio" name="n_num" value="p" onchange="runNoun()"> 👥 复数</label>
+            </div>
+            <div id="nounHint" class="hint-line"></div>
+        </div>
+        <div class="result-display">
+            <div id="nounResult" class="dynamic-word">---</div>
+        </div>
+    </div>
+
+    <div id="tab3" class="panel">
+        <div class="principle-card">
+            <h4>💡 规则动词现在时生成器：砍掉尾巴，替换分身</h4>
+            <p>1. <strong>三种原形长相</strong>：西语动词原形主要以 <span class="example-tag">-ar</span>, <span class="example-tag">-er</span>, <span class="example-tag">-ir</span> 结尾。</p>
+            <p>2. <strong>规则动词原则</strong>：现在时要砍掉两个字母的原形尾巴，然后按人称贴上对应后缀。这个生成器会自动识别常见不规则动词；没收录的词仍可能需要查不规则表。</p>
+        </div>
+        <div class="input-section">
+            <input type="text" id="verbInput" placeholder="试输入: firmar, comer, vivir, lavarse, pensar, tener" oninput="runVerb()">
+            <div id="verbMsg" class="verb-note"></div>
+        </div>
+        <div class="table-container">
+            <table>
+                <tr><th class="center-text">🙋‍♂️ 我 (yo)</th><td class="center-text highlight-green" id="v_1">---</td></tr>
+                <tr><th class="center-text">🫵 你 (tú)</th><td class="center-text highlight-green" id="v_2">---</td></tr>
+                <tr><th class="center-text">👤 他/她/它/您</th><td class="center-text highlight-green" id="v_3">---</td></tr>
+                <tr><th class="center-text">🫂 我们 (nosotros)</th><td class="center-text highlight-green" id="v_4">---</td></tr>
+                <tr><th class="center-text">🧍‍♂️🧍‍♀️ 你们 (vosotros)</th><td class="center-text highlight-green" id="v_5">---</td></tr>
+                <tr><th class="center-text">👥 他们/她们/您们</th><td class="center-text highlight-green" id="v_6">---</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-irreg" class="panel">
+        <h3 style="text-align:center;">三大类不规则动词全景图</h3>
+
+        <div class="principle-card purple-theme">
+            <h4>第一类：彻底改头换面型</h4>
+            <p>词根和词尾都不能按规则预测，需要整组记忆。</p>
+        </div>
+        <div class="grid-3">
+            <div class="table-container">
+                <h4 style="text-align:center;">Ser (是)</h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">soy</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">eres</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">es</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text highlight-purple">somos</td></tr>
+                    <tr><td class="center-text">你们</td><td class="center-text highlight-purple">sois</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">son</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">Estar (处于/在)</h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">estoy</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">estás</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">está</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text highlight-purple">estamos</td></tr>
+                    <tr><td class="center-text">你们</td><td class="center-text highlight-purple">estáis</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">están</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">Ir (去)</h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">voy</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">vas</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">va</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text highlight-purple">vamos</td></tr>
+                    <tr><td class="center-text">你们</td><td class="center-text highlight-purple">vais</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">van</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="principle-card purple-theme">
+            <h4>第二类：词根裂变型 (靴子动词)</h4>
+            <p>后缀大体正常，但词根元音突变。<strong>裂变通常发生在“我、你、他/她/它/您、他们/她们/您们”</strong>；“我们”和“你们”不裂变。</p>
+        </div>
+        <div class="grid-3">
+            <div class="table-container">
+                <h4 style="text-align:center;">e → ie<br><span style="font-size:12px; font-weight:normal;">Pensar (思考/打算)</span></h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">p<span class="highlight-mut">ie</span>nso</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">p<span class="highlight-mut">ie</span>nsas</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">p<span class="highlight-mut">ie</span>nsa</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text">pensamos</td></tr>
+                    <tr><td class="center-text">你们</td><td class="center-text">pensáis</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">p<span class="highlight-mut">ie</span>nsan</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">o → ue<br><span style="font-size:12px; font-weight:normal;">Poder (能/可以)</span></h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">p<span class="highlight-mut">ue</span>do</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">p<span class="highlight-mut">ue</span>des</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">p<span class="highlight-mut">ue</span>de</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text">podemos</td></tr>
+                    <tr><td class="center-text">你们</td><td class="center-text">podéis</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">p<span class="highlight-mut">ue</span>den</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">e → i<br><span style="font-size:12px; font-weight:normal;">Pedir (请求/要求)</span></h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">p<span class="highlight-mut">i</span>do</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">p<span class="highlight-mut">i</span>des</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">p<span class="highlight-mut">i</span>de</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text">pedimos</td></tr>
+                    <tr><td class="center-text">你们</td><td class="center-text">pedís</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">p<span class="highlight-mut">i</span>den</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="principle-card purple-theme" style="margin-top:20px;">
+            <h4>第三类：yo 特殊型 + 混合型</h4>
+            <p>有些动词只有 “yo” 多出 <span class="highlight-mut">g</span> 或 <span class="highlight-mut">zc</span>；也有些词同时具备 “yo 特殊 + 词根裂变”，例如 <span class="example-tag">tener</span>。</p>
+        </div>
+        <div class="grid-3">
+            <div class="table-container">
+                <h4 style="text-align:center;">Hacer (做)</h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">ha<span class="highlight-mut">g</span>o</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text">haces</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text">hace</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">Tener (有)</h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">ten<span class="highlight-mut">g</span>o</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text highlight-purple">t<span class="highlight-mut">ie</span>nes</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text highlight-purple">t<span class="highlight-mut">ie</span>ne</td></tr>
+                    <tr><td class="center-text">我们</td><td class="center-text">tenemos</td></tr>
+                    <tr><td class="center-text">他们/她们/您们</td><td class="center-text highlight-purple">t<span class="highlight-mut">ie</span>nen</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">Conocer (认识/了解)</h4>
+                <table>
+                    <tr><td class="center-text">我</td><td class="center-text highlight-purple">cono<span class="highlight-mut">zc</span>o</td></tr>
+                    <tr><td class="center-text">你</td><td class="center-text">conoces</td></tr>
+                    <tr><td class="center-text">他/她/它/您</td><td class="center-text">conoce</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-order" class="panel">
+        <h3 style="text-align:center;">造句的潜规则：语序与省略</h3>
+
+        <div class="principle-card dark-theme">
+            <h4>🧩 1. 修饰顺序：多数描述性形容词后置</h4>
+            <p>西班牙语里，描述性质、类别、国籍、技术属性的形容词多数放在名词后面。不要把这个理解成绝对规则；数量、所属、某些常用评价词或强调词常常放在前面。</p>
+            <div class="sub-principle">
+                <strong>✅ 常见后置：</strong><br>
+                • 国际协议 → <strong>el acuerdo internacional</strong><br>
+                • 有效合同 → <strong>el contrato válido</strong><br>
+                • 技术规范 → <strong>el estándar técnico</strong>
+            </div>
+            <div class="sub-principle">
+                <strong>✅ 常见前置：</strong><br>
+                • 所属：<strong>mi contrato</strong>, <strong>tu cliente</strong>, <strong>nuestro socio</strong><br>
+                • 常用短形容词：<strong>un buen día</strong>, <strong>un gran problema</strong><br>
+                • 时间/顺序：<strong>la próxima semana</strong>, <strong>el primer documento</strong>
+            </div>
+        </div>
+
+        <div class="principle-card dark-theme">
+            <h4>✂️ 2. 主语省略：什么时候可以不说主语？</h4>
+            <p>西语动词变位已经包含了很多人称信息，所以 <strong>yo, tú, nosotros</strong> 等代词常常省略。</p>
+            <p><strong>💡 为什么？</strong> 因为动词尾巴已经说明是谁在做动作。“一听尾巴，就知道是谁”，不需要每句都补代词。</p>
+            <div class="sub-principle">
+                <strong>📝 商务实战举例：</strong><br>
+                • (我) 审查协议 → <strong><del>Yo</del> Reviso el acuerdo.</strong> (revis<span class="highlight-text">o</span> 指向“我”)<br>
+                • (我们) 和客户签署合同 → <strong><del>Nosotros</del> Firmamos el contrato con el cliente.</strong> (firma<span class="highlight-text">mos</span> 指向“我们”)
+            </div>
+            <p class="mini-note">注：需要强调“就是我/就是我们”，或者第三人称可能歧义时，可以把主语代词补上。</p>
+        </div>
+
+        <div class="principle-card dark-theme">
+            <h4>🚫 3. 否定句语序：no 放在变位动词前</h4>
+            <p>西语里最常见的否定词是 <span class="example-tag">no</span>。它通常直接放在<strong>已经变位的动词前面</strong>，位置比中文更固定。</p>
+            <div class="sub-principle">
+                <strong>基本公式：</strong><br>
+                主语（可省略） + <span class="example-tag">no</span> + 变位动词 + 其他内容<br>
+                • <span class="example-tag">No firmo el contrato.</span> = 我不签合同。<br>
+                • <span class="example-tag">El documento no está listo.</span> = 文件还没准备好。<br>
+                • <span class="example-tag">No hay problemas.</span> = 没有问题。
+            </div>
+            <div class="sub-principle">
+                <strong>双动词时：</strong><br>
+                <span class="example-tag">no</span> 放在第一个变位动词前，后面的动词保持原形。<br>
+                • <span class="example-tag">No quiero firmar.</span> = 我不想签。<br>
+                • <span class="example-tag">No podemos revisar el acuerdo hoy.</span> = 我们今天不能审查协议。
+            </div>
+        </div>
+
+        <div class="principle-card dark-theme">
+            <h4>❓ 4. 疑问句语序：标点、语调、疑问词</h4>
+            <p>西语直接疑问句要用一前一后两个问号：<span class="example-tag">¿ ... ?</span>。最常见有三种问法。</p>
+            <div class="sub-principle">
+                <strong>1. 是/否问题：陈述句加问号，靠语调提问</strong><br>
+                • <span class="example-tag">Firmamos el contrato.</span> = 我们签合同。<br>
+                • <span class="example-tag">¿Firmamos el contrato?</span> = 我们签合同吗？
+            </div>
+            <div class="sub-principle">
+                <strong>2. 主语后置：动词先出场，更像正式书面问法</strong><br>
+                • <span class="example-tag">¿Está listo el documento?</span> = 文件准备好了吗？<br>
+                • <span class="example-tag">¿Tiene usted el contrato?</span> = 您有合同吗？
+            </div>
+            <div class="sub-principle">
+                <strong>3. 疑问词问题：疑问词放句首，后面接变位动词</strong><br>
+                • <span class="example-tag">¿Dónde está el documento?</span> = 文件在哪里？<br>
+                • <span class="example-tag">¿Cuándo firmamos?</span> = 我们什么时候签？<br>
+                • <span class="example-tag">¿Por qué no está listo?</span> = 为什么还没准备好？
+            </div>
+            <p class="mini-note">否定疑问句里，<span class="example-tag">no</span> 仍然放在变位动词前：<span class="example-tag">¿No está listo?</span> = 还没准备好吗？</p>
+        </div>
+    </div>
+
+    <div id="tab-questions" class="panel">
+        <h3 style="text-align:center;">提问的艺术：核心疑问词 (Interrogativos)</h3>
+
+        <div class="principle-card">
+            <h4>💡 黄金疑问词一览</h4>
+            <p>疑问词在直接疑问句和间接疑问句里通常带<strong>重音符号 (´)</strong>；直接疑问句开头需要加倒问号 <strong>¿</strong>。</p>
+
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th style="width: 20%;">疑问词</th>
+                        <th style="width: 25%;">中文意思</th>
+                        <th>商务实战例句</th>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Qué?</td>
+                        <td class="center-text">什么 (What)</td>
+                        <td>¿<strong>Qué</strong> es este documento?<br><span class="mini-note">(这份文件是什么？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Quién?<br><span style="font-size:12px;font-weight:normal;">复数: quiénes</span></td>
+                        <td class="center-text">谁 (Who)</td>
+                        <td>¿<strong>Quién</strong> es el cliente?<br><span class="mini-note">(客户是谁？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Cuál?<br><span style="font-size:12px;font-weight:normal;">复数: cuáles</span></td>
+                        <td class="center-text">哪一个/哪些 (Which)</td>
+                        <td>¿<strong>Cuál</strong> es la opción correcta?<br><span class="mini-note">(哪个选项是正确的？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Dónde?</td>
+                        <td class="center-text">哪里 (Where)</td>
+                        <td>¿<strong>Dónde</strong> está el socio?<br><span class="mini-note">(合作伙伴在哪里？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Cuándo?</td>
+                        <td class="center-text">什么时候 (When)</td>
+                        <td>¿<strong>Cuándo</strong> firmamos el contrato?<br><span class="mini-note">(我们何时签署合同？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Por qué?</td>
+                        <td class="center-text">为什么 (Why)</td>
+                        <td>¿<strong>Por qué</strong> rechazaron la propuesta?<br><span class="mini-note">(他们为什么拒绝这个提议？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Cómo?</td>
+                        <td class="center-text">怎么/如何 (How)</td>
+                        <td>¿<strong>Cómo</strong> procesamos los datos?<br><span class="mini-note">(我们如何处理这些数据？)</span></td>
+                    </tr>
+                    <tr>
+                        <td class="highlight-dark center-text">¿Cuánto?<br><span style="font-size:12px;font-weight:normal;">cuánto/cuánta/cuántos/cuántas</span></td>
+                        <td class="center-text">多少 (How much/many)</td>
+                        <td>¿<strong>Cuántos</strong> socios tenemos?<br><span class="mini-note">(我们有多少个合作伙伴？)</span></td>
+                    </tr>
+                </table>
+            </div>
+            <p class="mini-note"><strong>注意点</strong>：<span class="example-tag">cuánto</span> 会按性数变化；<span class="example-tag">quién/quiénes</span> 和 <span class="example-tag">cuál/cuáles</span> 也有单复数变化。</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const PERSON_COUNT = 6;
+    const PERSON_PREFIXES = ['me ', 'te ', 'se ', 'nos ', 'os ', 'se '];
+    const VOWELS = ['a', 'e', 'i', 'o', 'u', 'á', 'é', 'í', 'ó', 'ú'];
+
+    const nounExceptions = {
+        mano: { gender: 'f', source: '例外词库：mano 虽以 -o 结尾，但为阴性。' },
+        dia: { gender: 'm', source: '例外词库：día 虽以 -a 结尾，但为阳性。', display: 'día' },
+        día: { gender: 'm', source: '例外词库：día 虽以 -a 结尾，但为阳性。' },
+        problema: { gender: 'm', source: '例外词库：-ma 希腊来源词，常为阳性。' },
+        sistema: { gender: 'm', source: '例外词库：-ma 希腊来源词，常为阳性。' },
+        mapa: { gender: 'm', source: '例外词库：mapa 为阳性。' },
+        agua: { gender: 'f', articleSingular: 'el', source: '例外词库：agua 为阴性，但单数定冠词用 el 以避免重音冲突。' },
+        foto: { gender: 'f', source: '例外词库：foto 是 fotografía 的缩短形式，为阴性。' },
+        moto: { gender: 'f', source: '例外词库：moto 是 motocicleta 的缩短形式，为阴性。' },
+        luz: { gender: 'f', source: '常用词库：luz 为阴性。' },
+        imagen: { gender: 'f', source: '常用词库：imagen 为阴性。' },
+        crisis: { gender: 'f', source: '常用词库：crisis 为阴性，复数形式不变。' },
+        tesis: { gender: 'f', source: '常用词库：tesis 为阴性，复数形式不变。' }
+    };
+
+    const pluralAccentAddMap = {
+        resumen: { plural: 'resúmenes', note: '特殊重音：resumen 复数新增重音。' },
+        imagen: { plural: 'imágenes', note: '特殊重音：imagen 复数新增重音。' },
+        examen: { plural: 'exámenes', note: '特殊重音：examen 复数新增重音。' },
+        joven: { plural: 'jóvenes', note: '特殊重音：joven 复数新增重音。' },
+        margen: { plural: 'márgenes', note: '特殊重音：margen 复数新增重音。' },
+        origen: { plural: 'orígenes', note: '特殊重音：origen 复数新增重音。' }
+    };
+
+    const unchangedPluralSet = new Set([
+        'lunes',
+        'martes',
+        'miércoles',
+        'jueves',
+        'viernes',
+        'crisis',
+        'tesis',
+        'análisis',
+        'paréntesis'
+    ]);
+
+    const irregularVerbs = {
+        ser: {
+            forms: ['soy', 'eres', 'es', 'somos', 'sois', 'son'],
+            note: '不规则动词：ser 需要整组记忆。'
+        },
+        estar: {
+            forms: ['estoy', 'estás', 'está', 'estamos', 'estáis', 'están'],
+            note: '不规则动词：estar 的 yo 形式和重音需要单独记忆。'
+        },
+        ir: {
+            forms: ['voy', 'vas', 'va', 'vamos', 'vais', 'van'],
+            note: '不规则动词：ir 彻底改头换面。自反 irse 会变成 me voy, te vas...'
+        },
+        tener: {
+            forms: ['tengo', 'tienes', 'tiene', 'tenemos', 'tenéis', 'tienen'],
+            note: '混合型不规则：yo tengo；tú/él/ellos 发生 e → ie 裂变。'
+        },
+        hacer: {
+            forms: ['hago', 'haces', 'hace', 'hacemos', 'hacéis', 'hacen'],
+            note: 'yo 特殊型：hacer 的 yo 形式是 hago。'
+        },
+        conocer: {
+            forms: ['conozco', 'conoces', 'conoce', 'conocemos', 'conocéis', 'conocen'],
+            note: 'yo 特殊型：-cer/-cir 类动词常见 yo -zco。'
+        },
+        pensar: {
+            forms: ['pienso', 'piensas', 'piensa', 'pensamos', 'pensáis', 'piensan'],
+            note: '靴子动词：pensar 发生 e → ie；nosotros/vosotros 不裂变。'
+        },
+        poder: {
+            forms: ['puedo', 'puedes', 'puede', 'podemos', 'podéis', 'pueden'],
+            note: '靴子动词：poder 发生 o → ue；nosotros/vosotros 不裂变。'
+        },
+        pedir: {
+            forms: ['pido', 'pides', 'pide', 'pedimos', 'pedís', 'piden'],
+            note: '靴子动词：pedir 发生 e → i；nosotros/vosotros 不裂变。'
+        }
+    };
+
+    function showTab(id, btn) {
+        const panel = document.getElementById(id);
+        if (!panel || !btn) return;
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        panel.classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function clearNode(node) {
+        while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    function setText(id, value) {
+        const node = document.getElementById(id);
+        if (node) node.textContent = value;
+    }
+
+    function renderWord(targetId, article, word, suffixLength) {
+        const node = document.getElementById(targetId);
+        if (!node) return;
+        clearNode(node);
+
+        if (!word) {
+            node.textContent = '---';
+            return;
+        }
+
+        if (article) {
+            const articleSpan = document.createElement('span');
+            articleSpan.className = 'result-article';
+            articleSpan.textContent = article + ' ';
+            node.appendChild(articleSpan);
+        }
+
+        const normalizedSuffixLength = Number.isInteger(suffixLength) && suffixLength > 0
+            ? Math.min(suffixLength, word.length)
+            : 0;
+
+        if (normalizedSuffixLength === 0) {
+            node.appendChild(document.createTextNode(word));
+            return;
+        }
+
+        const root = word.slice(0, -normalizedSuffixLength);
+        const suffix = word.slice(-normalizedSuffixLength);
+        node.appendChild(document.createTextNode(root));
+
+        const suffixSpan = document.createElement('span');
+        suffixSpan.className = 'suffix';
+        suffixSpan.textContent = suffix;
+        node.appendChild(suffixSpan);
+    }
+
+    function renderVerbCell(id, prefix, form) {
+        const node = document.getElementById(id);
+        if (!node) return;
+        clearNode(node);
+        if (!form) {
+            node.textContent = '---';
+            return;
+        }
+        if (prefix) node.appendChild(document.createTextNode(prefix));
+        node.appendChild(document.createTextNode(form));
+    }
+
+    function resetVerbTable() {
+        for (let i = 1; i <= PERSON_COUNT; i++) renderVerbCell('v_' + i, '', '');
+    }
+
+    function normalizeInput(value) {
+        return value.trim().toLowerCase();
+    }
+
+    function getNounGenderInfo(noun) {
+        const exception = nounExceptions[noun];
+        if (exception) return exception;
+
+        if (noun.endsWith('ción') || noun.endsWith('sión') || noun.endsWith('dad') || noun.endsWith('tad') || noun.endsWith('tud')) {
+            return { gender: 'f', source: '规则推测：-ción/-sión/-dad/-tad/-tud 结尾通常为阴性。' };
+        }
+        if (noun.endsWith('ma')) {
+            return { gender: 'm', source: '规则推测：-ma 结尾的希腊来源词常为阳性，但有例外。' };
+        }
+        if (noun.endsWith('o')) {
+            return { gender: 'm', source: '规则推测：-o 结尾通常为阳性。' };
+        }
+        if (noun.endsWith('a')) {
+            return { gender: 'f', source: '规则推测：-a 结尾通常为阴性。' };
+        }
+        return { gender: 'm', source: '性别不明显：暂按阳性显示，建议查词典确认。' };
+    }
+
+    function getDefiniteArticle(genderInfo, number) {
+        if (number === 's') {
+            if (genderInfo.articleSingular) return genderInfo.articleSingular;
+            return genderInfo.gender === 'f' ? 'la' : 'el';
+        }
+        return genderInfo.gender === 'f' ? 'las' : 'los';
+    }
+
+    function pluralizeNoun(noun) {
+        if (unchangedPluralSet.has(noun)) {
+            return { word: noun, suffixLength: 0, note: '特殊情况：这个 -s 结尾词复数形式不变。' };
+        }
+        if (pluralAccentAddMap[noun]) {
+            return {
+                word: pluralAccentAddMap[noun].plural,
+                suffixLength: 2,
+                note: pluralAccentAddMap[noun].note
+            };
+        }
+        if (noun.endsWith('z')) {
+            return {
+                word: noun.slice(0, -1) + 'ces',
+                suffixLength: 3,
+                note: '规则：z 结尾变为 -ces。'
+            };
+        }
+        if (noun.endsWith('ón') || noun.endsWith('és')) {
+            const unaccentedMap = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u' };
+            const accented = noun.slice(-2, -1);
+            const plain = unaccentedMap[accented] || accented;
+            return {
+                word: noun.slice(0, -2) + plain + noun.slice(-1) + 'es',
+                suffixLength: 2,
+                note: '重音规则：-ón/-és 结尾加 -es 时通常去掉原重音。'
+            };
+        }
+
+        const lastChar = noun.slice(-1);
+        if (VOWELS.includes(lastChar)) {
+            return { word: noun + 's', suffixLength: 1, note: '规则：元音结尾直接加 -s。' };
+        }
+        return { word: noun + 'es', suffixLength: 2, note: '规则：辅音结尾通常加 -es。' };
+    }
+
+    function runNoun() {
+        const rawValue = document.getElementById('nounInput').value;
+        let value = normalizeInput(rawValue);
+        const num = document.querySelector('input[name="n_num"]:checked').value;
+        const hint = document.getElementById('nounHint');
+
+        if (!value) {
+            renderWord('nounResult', '', '', 0);
+            hint.textContent = '';
+            return;
+        }
+
+        value = value.replace(/[^a-záéíóúüñ -]/g, '').trim();
+        if (!value) {
+            renderWord('nounResult', '', '', 0);
+            hint.textContent = '已忽略非西语字母内容。';
+            return;
+        }
+
+        const exception = nounExceptions[value];
+        const displayValue = exception?.display || value;
+        const genderInfo = getNounGenderInfo(value);
+
+        if (num === 's') {
+            const article = getDefiniteArticle(genderInfo, 's');
+            renderWord('nounResult', article, displayValue, 0);
+            hint.textContent = genderInfo.source + ' 当前显示：定冠词 + 单数名词。';
+            return;
+        }
+
+        const plural = pluralizeNoun(displayValue);
+        const article = getDefiniteArticle(genderInfo, 'p');
+        renderWord('nounResult', article, plural.word, plural.suffixLength);
+        hint.textContent = genderInfo.source + ' ' + plural.note + ' 当前显示：定冠词 + 复数名词。';
+    }
+
+    function runVerb() {
+        const rawValue = document.getElementById('verbInput').value;
+        let verb = normalizeInput(rawValue).replace(/[^a-záéíóúüñ]/g, '');
+        const msg = document.getElementById('verbMsg');
+        msg.textContent = '';
+
+        if (verb.length < 2) {
+            resetVerbTable();
+            return;
+        }
+
+        if (verb === 'hay') {
+            renderVerbCell('v_1', '', 'hay');
+            renderVerbCell('v_2', '', '非人称');
+            renderVerbCell('v_3', '', '非人称');
+            renderVerbCell('v_4', '', '非人称');
+            renderVerbCell('v_5', '', '非人称');
+            renderVerbCell('v_6', '', '非人称');
+            msg.textContent = 'hay = “有/存在”，来自 haber 的非人称现在时；不按 yo/tú/él/ella/ello/ellos/ellas 变位。例：Hay un documento. / Hay dos documentos.';
+            return;
+        }
+
+        let isReflexive = false;
+        if (verb.endsWith('se')) {
+            const base = verb.slice(0, -2);
+            if (base.endsWith('ar') || base.endsWith('er') || base.endsWith('ir')) {
+                isReflexive = true;
+                verb = base;
+            }
+        }
+
+        const prefixArr = isReflexive ? PERSON_PREFIXES : ['', '', '', '', '', ''];
+
+        if (irregularVerbs[verb]) {
+            const info = irregularVerbs[verb];
+            for (let i = 1; i <= PERSON_COUNT; i++) {
+                renderVerbCell('v_' + i, prefixArr[i - 1], info.forms[i - 1]);
+            }
+            msg.textContent = (isReflexive ? "检测到自反动词：已补齐 me/te/se/nos/os/se。 " : "") + info.note;
+            return;
+        }
+
+        if (verb.length < 3) {
+            resetVerbTable();
+            msg.textContent = '请输入完整动词原形，例如 firmar, comer, vivir。';
+            return;
+        }
+
+        const root = verb.slice(0, -2);
+        const tail = verb.slice(-2);
+        const rules = {
+            ar: ['o', 'as', 'a', 'amos', 'áis', 'an'],
+            er: ['o', 'es', 'e', 'emos', 'éis', 'en'],
+            ir: ['o', 'es', 'e', 'imos', 'ís', 'en']
+        };
+
+        if (!rules[tail]) {
+            resetVerbTable();
+            msg.textContent = '未识别为 -ar/-er/-ir 动词原形。';
+            return;
+        }
+
+        for (let i = 1; i <= PERSON_COUNT; i++) {
+            renderVerbCell('v_' + i, prefixArr[i - 1], root + rules[tail][i - 1]);
+        }
+
+        msg.textContent = (isReflexive ? "检测到自反动词：已补齐 me/te/se/nos/os/se。 " : "")
+            + "按规则动词现在时生成；若结果看起来异常，请查不规则页。";
+    }
+</script>
+
+</body>
+</html>
