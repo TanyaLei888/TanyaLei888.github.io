@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语语法速记小卡片 v1.1</title>
+    <style>
+        :root {
+            --ink: #111827;
+            --muted: #4B5563;
+            --line: #D1D5DB;
+            --blue: #2563EB;
+            --green: #059669;
+            --amber: #B45309;
+            --purple: #7C3AED;
+            --bg: #F8FAFC;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #E5E7EB;
+            color: var(--ink);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.35;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 16px auto;
+            background: white;
+            padding: 10mm;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        h1 {
+            margin: 0 0 3mm;
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin: 0 0 6mm;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5mm;
+        }
+
+        .block {
+            border: 1.5px solid var(--line);
+            border-radius: 6px;
+            overflow: hidden;
+            background: white;
+            page-break-inside: avoid;
+        }
+
+        .block.full { grid-column: 1 / -1; }
+
+        .title {
+            padding: 7px 9px;
+            color: white;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .blue { background: var(--blue); }
+        .green { background: var(--green); }
+        .amber { background: var(--amber); }
+        .purple { background: var(--purple); }
+        .dark { background: var(--ink); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        th, td {
+            border: 1px solid var(--line);
+            padding: 6px;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--bg);
+            text-align: center;
+            font-weight: 900;
+        }
+
+        td.center { text-align: center; }
+        .key { font-weight: 900; color: var(--blue); }
+        .ok { font-weight: 900; color: var(--green); }
+        .warn { font-weight: 900; color: var(--amber); }
+        .code {
+            font-family: Consolas, "SFMono-Regular", monospace;
+            font-weight: 800;
+            background: #F3F4F6;
+            border: 1px solid #E5E7EB;
+            border-radius: 4px;
+            padding: 1px 4px;
+            white-space: nowrap;
+        }
+
+        .notes {
+            padding: 7px 9px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        @media print {
+            body { background: white; }
+            .page {
+                width: auto;
+                min-height: auto;
+                margin: 0;
+                padding: 8mm;
+                box-shadow: none;
+            }
+            @page { size: A4; margin: 8mm; }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <h1>英语语法速记小卡片</h1>
+    <p class="subtitle">句子骨架 · 冠词名词 · Be/Have/There be · 时态 · 否定疑问</p>
+
+    <section class="grid">
+        <div class="block">
+            <div class="title blue">1. 句子骨架</div>
+            <table>
+                <tr><th>结构</th><th>例句</th><th>中文感觉</th></tr>
+                <tr><td class="center key">S + V</td><td>I work.</td><td>我工作。</td></tr>
+                <tr><td class="center key">S + V + O</td><td>We signed the contract.</td><td>我们签了合同。</td></tr>
+                <tr><td class="center key">S + be + 表语</td><td>The file is ready.</td><td>文件准备好了。</td></tr>
+                <tr><td class="center key">There be</td><td>There is a problem.</td><td>有一个问题。</td></tr>
+            </table>
+            <div class="notes">先抓 who does what，再补时间、地点、方式、原因。</div>
+        </div>
+
+        <div class="block">
+            <div class="title green">2. 冠词 / 指示词 / 代词</div>
+            <table>
+                <tr><th>类别</th><th>单数</th><th>复数/不可数</th></tr>
+                <tr><td>泛指一个</td><td class="center key">a / an</td><td class="center">不用</td></tr>
+                <tr><td>特指那个</td><td class="center key">the</td><td class="center key">the</td></tr>
+                <tr><td>近处</td><td class="center key">this</td><td class="center key">these</td></tr>
+                <tr><td>远处</td><td class="center key">that</td><td class="center key">those</td></tr>
+                <tr><td>一些/任何</td><td class="center">some / any</td><td class="center key">some / any</td></tr>
+            </table>
+            <div class="notes">
+                <span class="code">an hour</span>，但 <span class="code">a university</span>。a/an 看发音。<br>
+                代词速记：I/me/my/mine；he/him/his/his；she/her/her/hers；we/us/our/ours；they/them/their/theirs。
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="title amber">3. 名词复数</div>
+            <table>
+                <tr><th>规则</th><th>例子</th></tr>
+                <tr><td>多数加 <span class="code">-s</span></td><td>client → clients</td></tr>
+                <tr><td>s/x/ch/sh 加 <span class="code">-es</span></td><td>box → boxes, watch → watches</td></tr>
+                <tr><td>辅音 + y → <span class="code">ies</span></td><td>city → cities</td></tr>
+                <tr><td>常见不规则</td><td>child → children, person → people</td></tr>
+                <tr><td>不可数</td><td>information, advice, equipment, software</td></tr>
+            </table>
+        </div>
+
+        <div class="block">
+            <div class="title purple">4. Be / Have / There be</div>
+            <table>
+                <tr><th>系统</th><th>现在</th><th>过去</th></tr>
+                <tr><td class="key">Be</td><td>I am; he is; you/we/they are</td><td>was / were</td></tr>
+                <tr><td class="key">Have</td><td>I/you/we/they have; he has</td><td>had</td></tr>
+                <tr><td class="key">There be</td><td>there is / there are</td><td>there was / there were</td></tr>
+            </table>
+            <div class="notes">have = 拥有者有；there be = 某处存在。</div>
+        </div>
+
+        <div class="block full">
+            <div class="title dark">5. 时态速查</div>
+            <table>
+                <tr><th>时态</th><th>公式</th><th>核心感觉</th><th>例句</th></tr>
+                <tr><td class="center key">一般现在时</td><td>do / does</td><td>习惯、事实、规律</td><td>She works here.</td></tr>
+                <tr><td class="center key">现在进行时</td><td>am/is/are + doing</td><td>此刻正在发生</td><td>We are reviewing it.</td></tr>
+                <tr><td class="center key">一般过去时</td><td>did / was / were</td><td>过去发生并结束</td><td>They signed it yesterday.</td></tr>
+                <tr><td class="center key">过去进行时</td><td>was/were + doing</td><td>过去某刻正在发生</td><td>I was working at 9.</td></tr>
+                <tr><td class="center key">一般将来时</td><td>will + do</td><td>预测、承诺、临时决定</td><td>We will send it tomorrow.</td></tr>
+                <tr><td class="center key">将来进行时</td><td>will be + doing</td><td>将来某刻正在进行</td><td>I will be meeting him at 3.</td></tr>
+                <tr><td class="center key">现在完成时</td><td>have/has + done</td><td>过去影响现在；到现在为止</td><td>She has finished it.</td></tr>
+                <tr><td class="center key">过去完成时</td><td>had + done</td><td>过去的过去</td><td>They had left before I arrived.</td></tr>
+                <tr><td class="center key">将来完成时</td><td>will have + done</td><td>到将来某时已完成</td><td>We will have completed it by Friday.</td></tr>
+            </table>
+        </div>
+
+        <div class="block">
+            <div class="title blue">6. 否定句 / 疑问句</div>
+            <table>
+                <tr><th>类型</th><th>否定</th><th>疑问</th></tr>
+                <tr><td>Be</td><td>She is not ready.</td><td>Is she ready?</td></tr>
+                <tr><td>一般现在</td><td>She does not work.</td><td>Does she work?</td></tr>
+                <tr><td>一般过去</td><td>She did not work.</td><td>Did she work?</td></tr>
+                <tr><td>将来</td><td>She will not work.</td><td>Will she work?</td></tr>
+                <tr><td>完成</td><td>She has not worked.</td><td>Has she worked?</td></tr>
+            </table>
+            <div class="notes">用了 does/did 后，后面的实义动词恢复原形。</div>
+        </div>
+
+        <div class="block">
+            <div class="title green">7. 疑问词</div>
+            <table>
+                <tr><th>词</th><th>问什么</th><th>例子</th></tr>
+                <tr><td class="key">What</td><td>什么</td><td>What is this?</td></tr>
+                <tr><td class="key">Who</td><td>谁</td><td>Who sent it?</td></tr>
+                <tr><td class="key">Where</td><td>哪里</td><td>Where is the file?</td></tr>
+                <tr><td class="key">When</td><td>何时</td><td>When will we start?</td></tr>
+                <tr><td class="key">Why</td><td>为什么</td><td>Why did they reject it?</td></tr>
+                <tr><td class="key">How</td><td>如何</td><td>How do we solve this?</td></tr>
+                <tr><td class="key">How much/many</td><td>多少</td><td>much + 不可数；many + 复数</td></tr>
+            </table>
+            <div class="notes">间接疑问句恢复陈述语序：Could you tell me where the file is?</div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
