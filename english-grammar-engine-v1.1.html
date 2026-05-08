@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语语法学习引擎 v1.1</title>
+    <style>
+        :root {
+            --primary: #2563EB;
+            --secondary: #059669;
+            --accent: #D97706;
+            --danger: #DC2626;
+            --purple: #7C3AED;
+            --dark: #111827;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+            --text: #1F2937;
+            --muted: #6B7280;
+            --line: #E5E7EB;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 40px 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { max-width: 1100px; width: 100%; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 8px; }
+        .header p { color: var(--muted); margin: 0; font-weight: 700; }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            background: var(--card);
+            color: var(--muted);
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 14px;
+        }
+
+        .nav-btn:hover { transform: translateY(-1px); color: var(--dark); }
+        .nav-btn.active { background: var(--dark); color: white; }
+
+        .panel {
+            display: none;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .panel.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .principle-card {
+            background: #F8FAFC;
+            border-left: 5px solid var(--accent);
+            padding: 22px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+
+        .principle-card h4 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 19px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .principle-card p { margin: 10px 0; }
+        .principle-card.blue-theme { border-left-color: var(--primary); background: #EFF6FF; }
+        .principle-card.blue-theme h4 { color: var(--primary); }
+        .principle-card.green-theme { border-left-color: var(--secondary); background: #ECFDF5; }
+        .principle-card.green-theme h4 { color: var(--secondary); }
+        .principle-card.purple-theme { border-left-color: var(--purple); background: #F5F3FF; }
+        .principle-card.purple-theme h4 { color: var(--purple); }
+        .principle-card.dark-theme { border-left-color: var(--dark); background: #F1F5F9; }
+        .principle-card.dark-theme h4 { color: var(--dark); }
+
+        .sub-principle {
+            font-size: 14px;
+            color: #4B5563;
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            border: 1px solid var(--line);
+        }
+
+        .example-tag {
+            background: #E5E7EB;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #1F2937;
+            border: 1px solid #D1D5DB;
+            white-space: nowrap;
+        }
+
+        .table-container { overflow-x: auto; margin-bottom: 20px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            min-width: 620px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--line);
+            vertical-align: top;
+        }
+
+        th {
+            background: #F9FAFB;
+            font-size: 14px;
+            color: #4B5563;
+            text-align: center;
+        }
+
+        td.center-text, th.center-text { text-align: center; vertical-align: middle; }
+        .strong-cell { font-weight: 900; color: var(--primary); font-size: 1.12em; }
+        .green-cell { font-weight: 900; color: var(--secondary); font-size: 1.12em; }
+        .purple-cell { font-weight: 900; color: var(--purple); font-size: 1.12em; }
+        .danger-cell { font-weight: 900; color: var(--danger); font-size: 1.12em; }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 25px;
+            border: 2px solid #F3F4F6;
+            border-radius: 12px;
+            background: #F9FAFB;
+        }
+
+        input[type="text"], select {
+            padding: 14px;
+            border: 2px solid #D1D5DB;
+            border-radius: 10px;
+            font-size: 18px;
+            outline: none;
+            font-weight: 700;
+            width: 100%;
+            background: white;
+        }
+
+        input[type="text"] { text-align: center; font-size: 22px; }
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        input[type="radio"] { margin-right: 6px; transform: translateY(1px); }
+
+        .radio-row {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            font-weight: 700;
+            font-size: 16px;
+            flex-wrap: wrap;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+        .result-display {
+            text-align: center;
+            padding: 30px;
+            background: #EFF6FF;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 2px dashed var(--primary);
+        }
+
+        .dynamic-word {
+            font-size: clamp(30px, 6vw, 50px);
+            font-weight: 900;
+            color: #172554;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+            line-height: 1.25;
+        }
+
+        .hint-line {
+            min-height: 22px;
+            color: #4B5563;
+            font-size: 14px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .suffix { color: var(--primary); }
+        .mini-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+        .formula { font-weight: 900; color: var(--dark); }
+
+        textarea {
+            min-height: 96px;
+            padding: 14px;
+            border: 2px solid #D1D5DB;
+            border-radius: 10px;
+            font-size: 18px;
+            outline: none;
+            font-weight: 650;
+            width: 100%;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            background: var(--dark);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .tool-btn.secondary { background: var(--primary); }
+        .tool-btn.light { background: #E5E7EB; color: var(--dark); }
+
+        .training-prompt {
+            font-size: 22px;
+            font-weight: 900;
+            text-align: center;
+            color: var(--dark);
+            margin: 8px 0 12px;
+        }
+
+        .training-meta {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: #EEF2FF;
+            color: #3730A3;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .feedback-box {
+            background: #F8FAFC;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            line-height: 1.6;
+            min-height: 56px;
+        }
+
+        .feedback-box.ok { border-color: #86EFAC; background: #F0FDF4; }
+        .feedback-box.warn { border-color: #FCD34D; background: #FFFBEB; }
+        .feedback-box.bad { border-color: #FCA5A5; background: #FEF2F2; }
+
+        @media(max-width: 800px) {
+            body { padding: 24px 12px; }
+            .panel { padding: 18px; border-radius: 12px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            table { min-width: 620px; }
+            .radio-row { gap: 16px; font-size: 15px; }
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .nav, .input-section, .result-display { display: none; }
+            .panel { display: block !important; box-shadow: none; page-break-after: always; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>英语语法学习引擎</h1>
+        <p>句子骨架 · 名词冠词 · 核心动词 · 时态系统 · 否定疑问 (v1.1)</p>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" onclick="showTab('tab-sentence', this)">1. 句子骨架</button>
+        <button class="nav-btn" onclick="showTab('tab-noun', this)">2. 名词 / 冠词 / 代词</button>
+        <button class="nav-btn" onclick="showTab('tab-be', this)">3. Be / Have / There be</button>
+        <button class="nav-btn" onclick="showTab('tab-tense', this)">4. 时态系统</button>
+        <button class="nav-btn" onclick="showTab('tab-verb', this)">5. 动词三态</button>
+        <button class="nav-btn" onclick="showTab('tab-negative', this)">6. 否定句与疑问句</button>
+        <button class="nav-btn" onclick="showTab('tab-questions', this)">7. 疑问词与从句</button>
+        <button class="nav-btn" onclick="showTab('tab-training', this)">8. 造句训练</button>
+    </div>
+
+    <div id="tab-sentence" class="panel active">
+        <h3>英语先学句子骨架：谁 + 做什么 + 对谁/什么 + 在哪里/什么时候</h3>
+
+        <div class="principle-card blue-theme">
+            <h4>核心骨架：主语 + 谓语 + 宾语</h4>
+            <p>英语句子非常依赖位置。先抓住 <span class="example-tag">who does what</span>，再补时间、地点、方式、原因。</p>
+            <div class="sub-principle">
+                <span class="example-tag">I sent the file to the client yesterday.</span><br>
+                我昨天把文件发给了客户。<br>
+                <strong>I</strong> = 谁；<strong>sent</strong> = 做了什么；<strong>the file</strong> = 做的对象；<strong>to the client</strong> = 给谁；<strong>yesterday</strong> = 什么时候。
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>句型</th><th>结构</th><th>例句</th><th>中文理解</th></tr>
+                <tr><td class="center-text strong-cell">主 + 谓</td><td>S + V</td><td>She works.</td><td>她工作。</td></tr>
+                <tr><td class="center-text strong-cell">主 + 谓 + 宾</td><td>S + V + O</td><td>We signed the contract.</td><td>我们签了合同。</td></tr>
+                <tr><td class="center-text strong-cell">主 + 系 + 表</td><td>S + be + complement</td><td>The document is ready.</td><td>文件准备好了。</td></tr>
+                <tr><td class="center-text strong-cell">主 + 谓 + 双宾</td><td>S + V + IO + DO</td><td>I sent her the file.</td><td>我把文件发给了她。</td></tr>
+                <tr><td class="center-text strong-cell">There be</td><td>There + be + noun + place</td><td>There is a problem.</td><td>有一个问题。</td></tr>
+            </table>
+        </div>
+
+        <div class="principle-card">
+            <h4>英语修饰顺序</h4>
+            <div class="sub-principle">
+                <strong>形容词多数放名词前：</strong><span class="example-tag">an important document</span>, <span class="example-tag">a technical issue</span>
+            </div>
+            <div class="sub-principle">
+                <strong>地点和时间通常放句尾：</strong><span class="example-tag">We met the client in Shanghai yesterday.</span>
+            </div>
+            <div class="sub-principle">
+                <strong>频率副词常放实义动词前、be 后：</strong><span class="example-tag">I often check emails.</span> / <span class="example-tag">She is always busy.</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-noun" class="panel">
+        <h3>名词 / 冠词 / 代词：先解决“一个、这个、那些、谁的”</h3>
+
+        <div class="table-container">
+            <table>
+                <tr><th>类别</th><th>单数可数</th><th>复数可数</th><th>不可数</th><th>用法感觉</th></tr>
+                <tr><td class="center-text">不定冠词</td><td class="center-text strong-cell">a / an</td><td class="center-text">不用</td><td class="center-text">不用</td><td>第一次提到、泛指一个。a contract / an email</td></tr>
+                <tr><td class="center-text">定冠词</td><td class="center-text strong-cell">the</td><td class="center-text strong-cell">the</td><td class="center-text strong-cell">the</td><td>双方都知道、特指那个。the contract / the data</td></tr>
+                <tr><td class="center-text">近处指示</td><td class="center-text strong-cell">this</td><td class="center-text strong-cell">these</td><td class="center-text strong-cell">this</td><td>这个/这些。this file / these files</td></tr>
+                <tr><td class="center-text">远处指示</td><td class="center-text strong-cell">that</td><td class="center-text strong-cell">those</td><td class="center-text strong-cell">that</td><td>那个/那些。that issue / those issues</td></tr>
+                <tr><td class="center-text">一些/任何</td><td class="center-text">some / any</td><td class="center-text strong-cell">some / any</td><td class="center-text strong-cell">some / any</td><td>some 常用于肯定，any 常用于否定和疑问。</td></tr>
+            </table>
+        </div>
+
+        <div class="grid-2">
+            <div class="principle-card">
+                <h4>a / an 看发音，不是只看字母</h4>
+                <p><span class="example-tag">an hour</span>，因为 hour 的 h 不发音；<span class="example-tag">a university</span>，因为 university 开头读 /ju:/。</p>
+            </div>
+            <div class="principle-card">
+                <h4>不可数名词常见坑</h4>
+                <p><span class="example-tag">information</span>, <span class="example-tag">advice</span>, <span class="example-tag">equipment</span>, <span class="example-tag">software</span> 通常不加 a，也不加复数 s。</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>中文</th><th>主格</th><th>宾格</th><th>形容词性物主代词</th><th>名词性物主代词</th><th>反身代词</th></tr>
+                <tr><td class="center-text">我</td><td class="center-text strong-cell">I</td><td class="center-text">me</td><td class="center-text">my</td><td class="center-text">mine</td><td class="center-text">myself</td></tr>
+                <tr><td class="center-text">你/你们</td><td class="center-text strong-cell">you</td><td class="center-text">you</td><td class="center-text">your</td><td class="center-text">yours</td><td class="center-text">yourself / yourselves</td></tr>
+                <tr><td class="center-text">他</td><td class="center-text strong-cell">he</td><td class="center-text">him</td><td class="center-text">his</td><td class="center-text">his</td><td class="center-text">himself</td></tr>
+                <tr><td class="center-text">她</td><td class="center-text strong-cell">she</td><td class="center-text">her</td><td class="center-text">her</td><td class="center-text">hers</td><td class="center-text">herself</td></tr>
+                <tr><td class="center-text">它</td><td class="center-text strong-cell">it</td><td class="center-text">it</td><td class="center-text">its</td><td class="center-text">its</td><td class="center-text">itself</td></tr>
+                <tr><td class="center-text">我们</td><td class="center-text strong-cell">we</td><td class="center-text">us</td><td class="center-text">our</td><td class="center-text">ours</td><td class="center-text">ourselves</td></tr>
+                <tr><td class="center-text">他们/她们/它们</td><td class="center-text strong-cell">they</td><td class="center-text">them</td><td class="center-text">their</td><td class="center-text">theirs</td><td class="center-text">themselves</td></tr>
+            </table>
+        </div>
+        <p class="mini-note">主格做主语：<span class="example-tag">She called me.</span> 宾格做宾语：<span class="example-tag">I called her.</span> 形容词性物主代词后面接名词：<span class="example-tag">my file</span>；名词性物主代词单独用：<span class="example-tag">This file is mine.</span></p>
+
+        <div class="input-section">
+            <input type="text" id="nounInput" placeholder="试输入: client, box, city, child, information" oninput="runNoun()">
+            <div class="radio-row">
+                <label><input type="radio" name="noun_mode" value="singular" checked onchange="runNoun()"> 单数 + 冠词</label>
+                <label><input type="radio" name="noun_mode" value="plural" onchange="runNoun()"> 复数</label>
+            </div>
+            <div id="nounHint" class="hint-line"></div>
+        </div>
+
+        <div class="result-display">
+            <div id="nounResult" class="dynamic-word">---</div>
+        </div>
+    </div>
+
+    <div id="tab-be" class="panel">
+        <div class="principle-card green-theme">
+            <h4>Be / Have / There be：中文都可能像“是/有”，英语分工很清楚</h4>
+            <div class="sub-principle">
+                <strong>Be：</strong>身份、状态、位置。<span class="example-tag">She is a manager.</span> / <span class="example-tag">The file is ready.</span>
+            </div>
+            <div class="sub-principle">
+                <strong>Have：</strong>某人或某物拥有。<span class="example-tag">I have a question.</span> / <span class="example-tag">She has a meeting.</span>
+            </div>
+            <div class="sub-principle">
+                <strong>There be：</strong>某处存在某人/某物。<span class="example-tag">There is a file.</span> / <span class="example-tag">There are two files.</span>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="table-container">
+                <h4 style="text-align:center;">Be</h4>
+                <table>
+                    <tr><th>主语</th><th>现在</th><th>过去</th></tr>
+                    <tr><td>I</td><td class="strong-cell">am</td><td class="strong-cell">was</td></tr>
+                    <tr><td>he / she / it</td><td class="strong-cell">is</td><td class="strong-cell">was</td></tr>
+                    <tr><td>you / we / they</td><td class="strong-cell">are</td><td class="strong-cell">were</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">Have</h4>
+                <table>
+                    <tr><th>主语</th><th>现在</th><th>过去</th></tr>
+                    <tr><td>I / you / we / they</td><td class="green-cell">have</td><td class="green-cell">had</td></tr>
+                    <tr><td>he / she / it</td><td class="green-cell">has</td><td class="green-cell">had</td></tr>
+                </table>
+            </div>
+            <div class="table-container">
+                <h4 style="text-align:center;">There be</h4>
+                <table>
+                    <tr><th>后面名词</th><th>现在</th><th>过去</th></tr>
+                    <tr><td>单数 / 不可数</td><td class="purple-cell">there is</td><td class="purple-cell">there was</td></tr>
+                    <tr><td>复数</td><td class="purple-cell">there are</td><td class="purple-cell">there were</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-tense" class="panel">
+        <h3>英语时态系统：时间 + 状态，而不是只背中文翻译</h3>
+
+        <div class="principle-card blue-theme">
+            <h4>先分两层：什么时候 + 动作长什么样</h4>
+            <p><strong>时间</strong>：现在、过去、将来。<strong>状态</strong>：一般、进行、完成、完成进行。组合起来就是英语主要时态。</p>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>时态</th><th>公式</th><th>核心感觉</th><th>例句</th></tr>
+                <tr><td class="center-text strong-cell">一般现在时</td><td class="formula">do / does</td><td>习惯、事实、规律、日程</td><td>I work every day. / She works here.</td></tr>
+                <tr><td class="center-text strong-cell">现在进行时</td><td class="formula">am/is/are + doing</td><td>此刻正在发生；近期安排</td><td>We are reviewing the file.</td></tr>
+                <tr><td class="center-text strong-cell">一般过去时</td><td class="formula">did / was / were</td><td>过去某个时间发生并结束</td><td>They signed the contract yesterday.</td></tr>
+                <tr><td class="center-text strong-cell">过去进行时</td><td class="formula">was/were + doing</td><td>过去某一刻正在发生</td><td>I was working at 9 p.m.</td></tr>
+                <tr><td class="center-text strong-cell">一般将来时</td><td class="formula">will + do</td><td>预测、决定、承诺</td><td>We will send the file tomorrow.</td></tr>
+                <tr><td class="center-text strong-cell">将来进行时</td><td class="formula">will be + doing</td><td>将来某一刻正在进行</td><td>I will be meeting the client at 3.</td></tr>
+                <tr><td class="center-text strong-cell">现在完成时</td><td class="formula">have/has + done</td><td>过去动作对现在有影响；到现在为止</td><td>She has finished the report.</td></tr>
+                <tr><td class="center-text strong-cell">过去完成时</td><td class="formula">had + done</td><td>过去的过去</td><td>They had left before I arrived.</td></tr>
+                <tr><td class="center-text strong-cell">将来完成时</td><td class="formula">will have + done</td><td>到将来某时已经完成</td><td>We will have completed it by Friday.</td></tr>
+            </table>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="tenseVerbInput" placeholder="输入动词原形: work, study, go, write, be, have" oninput="runTense()">
+            <select id="tenseSelect" onchange="runTense()">
+                <option value="presentSimple">一般现在时</option>
+                <option value="presentContinuous">现在进行时</option>
+                <option value="pastSimple">一般过去时</option>
+                <option value="pastContinuous">过去进行时</option>
+                <option value="futureSimple">一般将来时</option>
+                <option value="futureContinuous">将来进行时</option>
+                <option value="presentPerfect">现在完成时</option>
+                <option value="pastPerfect">过去完成时</option>
+                <option value="futurePerfect">将来完成时</option>
+            </select>
+            <div id="tenseHint" class="hint-line"></div>
+        </div>
+
+        <div class="result-display">
+            <div id="tenseResult" class="dynamic-word">---</div>
+        </div>
+
+        <div class="principle-card">
+            <h4>“过去式”和“一般过去时”的区别</h4>
+            <div class="sub-principle">
+                <strong>过去式</strong>是动词的一个形态：<span class="example-tag">work -> worked</span>, <span class="example-tag">go -> went</span>。
+            </div>
+            <div class="sub-principle">
+                <strong>一般过去时</strong>是一个句子时态：用过去式表达过去发生并结束的事。<span class="example-tag">I worked yesterday.</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-verb" class="panel">
+        <h3>动词三态：原形、过去式、过去分词、现在分词</h3>
+
+        <div class="principle-card purple-theme">
+            <h4>为什么要背三态</h4>
+            <p>一般过去时用<strong>过去式</strong>；完成时用<strong>过去分词</strong>；进行时用<strong>现在分词</strong>。这比单独背“时态名字”更实用。</p>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="verbInput" placeholder="试输入: work, study, stop, make, go, write" oninput="runVerbForms()">
+            <div id="verbHint" class="hint-line"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>原形</th><th>第三人称单数</th><th>过去式</th><th>过去分词</th><th>现在分词</th></tr>
+                <tr>
+                    <td class="center-text strong-cell" id="formBase">---</td>
+                    <td class="center-text strong-cell" id="formThird">---</td>
+                    <td class="center-text strong-cell" id="formPast">---</td>
+                    <td class="center-text strong-cell" id="formParticiple">---</td>
+                    <td class="center-text strong-cell" id="formIng">---</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>原形</th><th>过去式</th><th>过去分词</th><th>例句</th></tr>
+                <tr><td class="center-text strong-cell">be</td><td>was / were</td><td>been</td><td>I was busy. / I have been busy.</td></tr>
+                <tr><td class="center-text strong-cell">go</td><td>went</td><td>gone</td><td>She went home. / She has gone home.</td></tr>
+                <tr><td class="center-text strong-cell">have</td><td>had</td><td>had</td><td>We had a meeting.</td></tr>
+                <tr><td class="center-text strong-cell">do</td><td>did</td><td>done</td><td>They did the work.</td></tr>
+                <tr><td class="center-text strong-cell">make</td><td>made</td><td>made</td><td>He made a decision.</td></tr>
+                <tr><td class="center-text strong-cell">get</td><td>got</td><td>got / gotten</td><td>I got your email.</td></tr>
+                <tr><td class="center-text strong-cell">write</td><td>wrote</td><td>written</td><td>She wrote a report.</td></tr>
+                <tr><td class="center-text strong-cell">send</td><td>sent</td><td>sent</td><td>We sent the file.</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-negative" class="panel">
+        <h3>否定句与疑问句：英语靠助动词来搬运语法</h3>
+
+        <div class="grid-2">
+            <div class="principle-card dark-theme">
+                <h4>否定句</h4>
+                <div class="sub-principle">
+                    <strong>be 后加 not：</strong><span class="example-tag">I am not ready.</span> / <span class="example-tag">The file is not ready.</span>
+                </div>
+                <div class="sub-principle">
+                    <strong>普通动词借 do：</strong><span class="example-tag">I do not know.</span> / <span class="example-tag">She does not know.</span>
+                </div>
+                <div class="sub-principle">
+                    <strong>过去借 did：</strong><span class="example-tag">They did not sign it.</span> 注意 sign 用原形。
+                </div>
+                <div class="sub-principle">
+                    <strong>将来 will not：</strong><span class="example-tag">We will not delay it.</span>
+                </div>
+            </div>
+
+            <div class="principle-card dark-theme">
+                <h4>疑问句</h4>
+                <div class="sub-principle">
+                    <strong>be 提前：</strong><span class="example-tag">Are you ready?</span> / <span class="example-tag">Was he there?</span>
+                </div>
+                <div class="sub-principle">
+                    <strong>普通动词借 do：</strong><span class="example-tag">Do you agree?</span> / <span class="example-tag">Does she agree?</span>
+                </div>
+                <div class="sub-principle">
+                    <strong>过去借 did：</strong><span class="example-tag">Did they sign it?</span> 注意 sign 用原形。
+                </div>
+                <div class="sub-principle">
+                    <strong>完成时 have/has 提前：</strong><span class="example-tag">Have you finished?</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>句子类型</th><th>肯定</th><th>否定</th><th>疑问</th></tr>
+                <tr><td class="center-text">Be</td><td>She is ready.</td><td>She is not ready.</td><td>Is she ready?</td></tr>
+                <tr><td class="center-text">一般现在</td><td>She works here.</td><td>She does not work here.</td><td>Does she work here?</td></tr>
+                <tr><td class="center-text">一般过去</td><td>She worked here.</td><td>She did not work here.</td><td>Did she work here?</td></tr>
+                <tr><td class="center-text">将来</td><td>She will work here.</td><td>She will not work here.</td><td>Will she work here?</td></tr>
+                <tr><td class="center-text">完成</td><td>She has worked here.</td><td>She has not worked here.</td><td>Has she worked here?</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-questions" class="panel">
+        <h3>疑问词与从句：先问类型，再套语序</h3>
+
+        <div class="table-container">
+            <table>
+                <tr><th>疑问词</th><th>问什么</th><th>例句</th><th>注意点</th></tr>
+                <tr><td class="center-text strong-cell">What</td><td>什么</td><td>What is this document?</td><td>问事物、内容、动作。</td></tr>
+                <tr><td class="center-text strong-cell">Who</td><td>谁</td><td>Who sent the file?</td><td>who 作主语时，后面不需要 do。</td></tr>
+                <tr><td class="center-text strong-cell">Whom</td><td>谁，宾格</td><td>Whom did you call?</td><td>正式；口语常用 who。</td></tr>
+                <tr><td class="center-text strong-cell">Whose</td><td>谁的</td><td>Whose laptop is this?</td><td>后面常接名词。</td></tr>
+                <tr><td class="center-text strong-cell">Which</td><td>哪一个/哪些</td><td>Which option is better?</td><td>有限范围内选择。</td></tr>
+                <tr><td class="center-text strong-cell">Where</td><td>哪里</td><td>Where is the file?</td><td>地点。</td></tr>
+                <tr><td class="center-text strong-cell">When</td><td>什么时候</td><td>When will we start?</td><td>时间点。</td></tr>
+                <tr><td class="center-text strong-cell">Why</td><td>为什么</td><td>Why did they reject it?</td><td>原因。</td></tr>
+                <tr><td class="center-text strong-cell">How</td><td>如何</td><td>How do we solve this?</td><td>方式、状态、程度。</td></tr>
+                <tr><td class="center-text strong-cell">How much / many</td><td>多少</td><td>How much time? / How many files?</td><td>much 接不可数；many 接复数可数。</td></tr>
+            </table>
+        </div>
+
+        <div class="principle-card">
+            <h4>直接疑问句 vs. 间接疑问句</h4>
+            <div class="sub-principle">
+                <strong>直接疑问句：</strong><span class="example-tag">Where is the file?</span> be/助动词提前。
+            </div>
+            <div class="sub-principle">
+                <strong>间接疑问句：</strong><span class="example-tag">I know where the file is.</span> 后面恢复陈述语序。
+            </div>
+            <div class="sub-principle">
+                <strong>常见句型：</strong><span class="example-tag">Could you tell me where the file is?</span> 不是 <span class="example-tag">where is the file</span>。
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-training" class="panel">
+        <h3>造句训练：从中文提示反推英语句子</h3>
+
+        <div class="principle-card blue-theme">
+            <h4>训练方法</h4>
+            <p>先判断句子类型和时态，再写英文。检查器会按核心答案、关键词和常见错误给反馈；有些句子可以有多种自然表达，重点先抓语法骨架。</p>
+        </div>
+
+        <div class="input-section">
+            <div class="training-meta">
+                <span class="pill" id="trainingLevel">---</span>
+                <span class="pill" id="trainingFocus">---</span>
+                <span class="pill" id="trainingCounter">---</span>
+            </div>
+            <div class="training-prompt" id="trainingPrompt">---</div>
+            <div class="hint-line" id="trainingWords">---</div>
+            <textarea id="trainingAnswer" placeholder="在这里输入你的英文句子，例如: She works here every day."></textarea>
+            <div class="action-row">
+                <button class="tool-btn secondary" type="button" onclick="checkTrainingAnswer()">检查答案</button>
+                <button class="tool-btn" type="button" onclick="nextTrainingQuestion()">下一题</button>
+                <button class="tool-btn light" type="button" onclick="showTrainingAnswer()">显示参考答案</button>
+            </div>
+            <div class="feedback-box" id="trainingFeedback">先写一句英文，然后点击“检查答案”。</div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>训练重点</th><th>先问自己</th><th>常见错误</th></tr>
+                <tr><td class="center-text strong-cell">时态</td><td>是习惯、过去、正在、将来，还是已经完成？</td><td>过去句忘记用过去式；will 后面动词加了 s。</td></tr>
+                <tr><td class="center-text strong-cell">主谓一致</td><td>主语是不是 he/she/it 单数？</td><td>She work here. / He have a meeting.</td></tr>
+                <tr><td class="center-text strong-cell">否定疑问</td><td>是 be 句，还是普通动词句？</td><td>She not know. / Does she works?</td></tr>
+                <tr><td class="center-text strong-cell">There be</td><td>是“某人拥有”，还是“某处存在”？</td><td>Have a problem in the file.</td></tr>
+                <tr><td class="center-text strong-cell">间接疑问</td><td>后半句是否要恢复陈述语序？</td><td>Could you tell me where is the file?</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const irregularNouns = {
+        child: { plural: "children", note: "不规则复数：child -> children。" },
+        person: { plural: "people", note: "常用复数：person -> people。" },
+        man: { plural: "men", note: "不规则复数：man -> men。" },
+        woman: { plural: "women", note: "不规则复数：woman -> women。" },
+        tooth: { plural: "teeth", note: "不规则复数：tooth -> teeth。" },
+        foot: { plural: "feet", note: "不规则复数：foot -> feet。" },
+        mouse: { plural: "mice", note: "不规则复数：mouse -> mice。" },
+        data: { plural: "data", note: "data 在商务语境里常按不可数/集合名词处理，通常不加 s。" },
+        information: { plural: "information", note: "information 是不可数名词，不加 a，也不加 s。" },
+        advice: { plural: "advice", note: "advice 是不可数名词，不加 a，也不加 s。" },
+        equipment: { plural: "equipment", note: "equipment 是不可数名词，不加 a，也不加 s。" },
+        software: { plural: "software", note: "software 常按不可数名词处理，不加 a，也不加 s。" },
+        photo: { plural: "photos", note: "常见例外：photo -> photos。" },
+        piano: { plural: "pianos", note: "常见例外：piano -> pianos。" },
+        video: { plural: "videos", note: "常见例外：video -> videos。" }
+    };
+
+    const uncountableNouns = new Set(["data", "information", "advice", "equipment", "money", "software", "homework", "progress", "news"]);
+    const specialAnWords = new Set(["hour", "honest", "honor", "heir"]);
+    const specialAWords = new Set(["university", "user", "unit", "european", "one"]);
+    const irregularVerbs = {
+        be: { third: "is", past: "was/were", participle: "been", ing: "being", note: "be 是完全不规则动词：am/is/are, was/were, been。" },
+        have: { third: "has", past: "had", participle: "had", ing: "having", note: "have 的第三人称单数是 has，过去式和过去分词都是 had。" },
+        do: { third: "does", past: "did", participle: "done", ing: "doing", note: "do 的第三人称单数是 does，过去式 did，过去分词 done。" },
+        go: { third: "goes", past: "went", participle: "gone", ing: "going", note: "go 的过去式是 went，过去分词是 gone。" },
+        make: { third: "makes", past: "made", participle: "made", ing: "making", note: "make 去 e 加 ing：making；过去式 made。" },
+        get: { third: "gets", past: "got", participle: "got/gotten", ing: "getting", note: "get 的过去分词英式常用 got，美式也常见 gotten。" },
+        write: { third: "writes", past: "wrote", participle: "written", ing: "writing", note: "write 的三态：write, wrote, written；现在分词 writing。" },
+        send: { third: "sends", past: "sent", participle: "sent", ing: "sending", note: "send 的过去式和过去分词都是 sent。" },
+        take: { third: "takes", past: "took", participle: "taken", ing: "taking", note: "take 的三态：take, took, taken。" },
+        see: { third: "sees", past: "saw", participle: "seen", ing: "seeing", note: "see 的三态：see, saw, seen。" },
+        come: { third: "comes", past: "came", participle: "come", ing: "coming", note: "come 的三态：come, came, come。" },
+        run: { third: "runs", past: "ran", participle: "run", ing: "running", note: "run 的三态：run, ran, run；现在分词 running。" },
+        begin: { third: "begins", past: "began", participle: "begun", ing: "beginning", note: "begin 的三态：begin, began, begun；现在分词 beginning。" },
+        sit: { third: "sits", past: "sat", participle: "sat", ing: "sitting", note: "sit 的三态：sit, sat, sat；现在分词 sitting。" },
+        put: { third: "puts", past: "put", participle: "put", ing: "putting", note: "put 的三态同形：put, put, put；现在分词 putting。" },
+        cut: { third: "cuts", past: "cut", participle: "cut", ing: "cutting", note: "cut 的三态同形：cut, cut, cut；现在分词 cutting。" },
+        read: { third: "reads", past: "read", participle: "read", ing: "reading", note: "read 三态拼写相同，但过去式/过去分词读音不同。" },
+        buy: { third: "buys", past: "bought", participle: "bought", ing: "buying", note: "buy 的三态：buy, bought, bought。" },
+        say: { third: "says", past: "said", participle: "said", ing: "saying", note: "say 的第三人称单数是 says，过去式和过去分词是 said。" },
+        tell: { third: "tells", past: "told", participle: "told", ing: "telling", note: "tell 的三态：tell, told, told。" },
+        think: { third: "thinks", past: "thought", participle: "thought", ing: "thinking", note: "think 的三态：think, thought, thought。" },
+        know: { third: "knows", past: "knew", participle: "known", ing: "knowing", note: "know 的三态：know, knew, known。" },
+        give: { third: "gives", past: "gave", participle: "given", ing: "giving", note: "give 的三态：give, gave, given。" }
+    };
+
+    const doubleFinalVerbs = new Set(["stop", "plan", "shop", "drop", "rob", "beg", "hug", "nod", "jog", "admit", "permit", "commit", "prefer", "refer", "occur", "control"]);
+
+    const trainingQuestions = [
+        {
+            level: "基础",
+            focus: "一般现在时",
+            prompt: "她每天在这里工作。",
+            words: "关键词：she / work / here / every day",
+            answers: ["she works here every day"],
+            keywords: ["she", "works", "here", "every", "day"],
+            tip: "he/she/it 做主语时，一般现在时的实义动词通常要加 -s。"
+        },
+        {
+            level: "基础",
+            focus: "一般过去时",
+            prompt: "我们昨天签了合同。",
+            words: "关键词：we / sign / contract / yesterday",
+            answers: ["we signed the contract yesterday"],
+            keywords: ["we", "signed", "contract", "yesterday"],
+            tip: "一般过去时表达过去发生并结束的事；regular verb 用过去式 -ed。"
+        },
+        {
+            level: "基础",
+            focus: "一般将来时",
+            prompt: "我明天会把文件发给你。",
+            words: "关键词：I / send / file / you / tomorrow",
+            answers: ["i will send you the file tomorrow", "i will send the file to you tomorrow"],
+            keywords: ["i", "will", "send", "file", "tomorrow"],
+            tip: "will 后面永远接动词原形：will send，不是 will sends。"
+        },
+        {
+            level: "进阶",
+            focus: "现在进行时",
+            prompt: "我们正在检查这个报告。",
+            words: "关键词：we / review / report / now",
+            answers: ["we are reviewing the report", "we are reviewing this report", "we are checking the report", "we are checking this report"],
+            keywords: ["we", "are", "ing", "report"],
+            tip: "现在进行时公式：am/is/are + doing。"
+        },
+        {
+            level: "进阶",
+            focus: "现在完成时",
+            prompt: "她已经完成了报告。",
+            words: "关键词：she / finish / report / already",
+            answers: ["she has finished the report", "she has already finished the report"],
+            keywords: ["she", "has", "finished", "report"],
+            tip: "现在完成时公式：have/has + done；she 用 has。"
+        },
+        {
+            level: "基础",
+            focus: "There be",
+            prompt: "桌上有两份文件。",
+            words: "关键词：there / two files / on the desk",
+            answers: ["there are two files on the desk"],
+            keywords: ["there", "are", "two", "files", "desk"],
+            tip: "There be 表示某处存在；后面是复数 files，所以用 there are。"
+        },
+        {
+            level: "基础",
+            focus: "否定句",
+            prompt: "她不知道答案。",
+            words: "关键词：she / not / know / answer",
+            answers: ["she does not know the answer", "she doesn't know the answer"],
+            keywords: ["she", "know", "answer"],
+            tip: "普通动词否定句借 does not；用了 does 后，know 用原形。"
+        },
+        {
+            level: "基础",
+            focus: "一般疑问句",
+            prompt: "你同意这个计划吗？",
+            words: "关键词：you / agree / plan",
+            answers: ["do you agree with the plan", "do you agree to the plan"],
+            keywords: ["do", "you", "agree", "plan"],
+            tip: "普通动词疑问句句首借 do/does/did。"
+        },
+        {
+            level: "进阶",
+            focus: "将来进行时",
+            prompt: "明天下午三点我会正在和客户开会。",
+            words: "关键词：I / meet / client / at 3 tomorrow afternoon",
+            answers: ["i will be meeting the client at 3 tomorrow afternoon", "i will be meeting with the client at 3 tomorrow afternoon"],
+            keywords: ["i", "will", "be", "meeting", "client", "3", "tomorrow", "afternoon"],
+            tip: "将来进行时公式：will be + doing。"
+        },
+        {
+            level: "进阶",
+            focus: "间接疑问句",
+            prompt: "你能告诉我文件在哪里吗？",
+            words: "关键词：could you tell me / where / file / is",
+            answers: ["could you tell me where the file is", "can you tell me where the file is"],
+            keywords: ["you", "tell", "me", "where", "file", "is"],
+            tip: "间接疑问句后半句恢复陈述语序：where the file is，不是 where is the file。"
+        }
+    ];
+
+    let currentTrainingIndex = 0;
+
+    function showTab(id, btn) {
+        const panel = document.getElementById(id);
+        if (!panel || !btn) return;
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+        panel.classList.add("active");
+        btn.classList.add("active");
+    }
+
+    function cleanWord(value) {
+        return value.trim().toLowerCase().replace(/[^a-z -]/g, "").trim();
+    }
+
+    function isVowelLetter(letter) {
+        return ["a", "e", "i", "o", "u"].includes(letter);
+    }
+
+    function chooseArticle(noun) {
+        if (!noun || uncountableNouns.has(noun)) return "";
+        if (specialAnWords.has(noun)) return "an";
+        if (specialAWords.has(noun)) return "a";
+        return isVowelLetter(noun[0]) ? "an" : "a";
+    }
+
+    function pluralize(noun) {
+        if (irregularNouns[noun]) {
+            const item = irregularNouns[noun];
+            return { word: item.plural, suffixLength: item.plural === noun ? 0 : Math.min(3, item.plural.length), note: item.note };
+        }
+        if (noun.endsWith("fe")) return { word: noun.slice(0, -2) + "ves", suffixLength: 3, note: "常见规则：-fe 结尾变 -ves，如 knife -> knives。但有例外。" };
+        if (noun.endsWith("f")) return { word: noun.slice(0, -1) + "ves", suffixLength: 3, note: "常见规则：-f 结尾变 -ves，如 leaf -> leaves。但有例外。" };
+        if (noun.endsWith("y") && noun.length > 1 && !isVowelLetter(noun[noun.length - 2])) return { word: noun.slice(0, -1) + "ies", suffixLength: 3, note: "规则：辅音字母 + y，y 变 ies。" };
+        if (noun.endsWith("s") || noun.endsWith("x") || noun.endsWith("z") || noun.endsWith("ch") || noun.endsWith("sh")) return { word: noun + "es", suffixLength: 2, note: "规则：s/x/z/ch/sh 结尾通常加 -es。" };
+        if (noun.endsWith("o")) return { word: noun + "es", suffixLength: 2, note: "常见规则：辅音 + o 结尾常加 -es，如 hero -> heroes；但 photo -> photos 属例外。" };
+        return { word: noun + "s", suffixLength: 1, note: "规则：大多数名词复数直接加 -s。" };
+    }
+
+    function setText(id, value) {
+        const node = document.getElementById(id);
+        if (node) node.textContent = value || "---";
+    }
+
+    function renderNoun(article, word, suffixLength) {
+        const node = document.getElementById("nounResult");
+        while (node.firstChild) node.removeChild(node.firstChild);
+        if (!word) {
+            node.textContent = "---";
+            return;
+        }
+        if (article) {
+            const a = document.createElement("span");
+            a.textContent = article + " ";
+            node.appendChild(a);
+        }
+        if (!suffixLength) {
+            node.appendChild(document.createTextNode(word));
+            return;
+        }
+        node.appendChild(document.createTextNode(word.slice(0, -suffixLength)));
+        const span = document.createElement("span");
+        span.className = "suffix";
+        span.textContent = word.slice(-suffixLength);
+        node.appendChild(span);
+    }
+
+    function runNoun() {
+        const noun = cleanWord(document.getElementById("nounInput").value);
+        const mode = document.querySelector("input[name='noun_mode']:checked").value;
+        const hint = document.getElementById("nounHint");
+        if (!noun) {
+            renderNoun("", "", 0);
+            hint.textContent = "";
+            return;
+        }
+        if (mode === "singular") {
+            const article = chooseArticle(noun);
+            renderNoun(article, noun, 0);
+            hint.textContent = article ? "当前显示：不定冠词 + 单数可数名词。a/an 按发音判断。" : "当前词按不可数名词处理，通常不加 a/an，也通常不加复数 -s。";
+            return;
+        }
+        const result = pluralize(noun);
+        renderNoun("", result.word, result.suffixLength);
+        hint.textContent = result.note;
+    }
+
+    function thirdPersonVerb(verb) {
+        if (irregularVerbs[verb]) return irregularVerbs[verb].third;
+        if (verb.endsWith("y") && verb.length > 1 && !isVowelLetter(verb[verb.length - 2])) return verb.slice(0, -1) + "ies";
+        if (verb.endsWith("s") || verb.endsWith("x") || verb.endsWith("z") || verb.endsWith("ch") || verb.endsWith("sh") || verb.endsWith("o")) return verb + "es";
+        return verb + "s";
+    }
+
+    function pastVerb(verb) {
+        if (irregularVerbs[verb]) return irregularVerbs[verb].past;
+        if (verb.endsWith("e")) return verb + "d";
+        if (verb.endsWith("y") && verb.length > 1 && !isVowelLetter(verb[verb.length - 2])) return verb.slice(0, -1) + "ied";
+        if (shouldDoubleFinalConsonant(verb)) return verb + verb.slice(-1) + "ed";
+        return verb + "ed";
+    }
+
+    function participleVerb(verb) {
+        if (irregularVerbs[verb]) return irregularVerbs[verb].participle;
+        return pastVerb(verb);
+    }
+
+    function ingVerb(verb) {
+        if (irregularVerbs[verb]) return irregularVerbs[verb].ing;
+        if (verb.endsWith("ie")) return verb.slice(0, -2) + "ying";
+        if (verb.endsWith("e") && !verb.endsWith("ee")) return verb.slice(0, -1) + "ing";
+        if (shouldDoubleFinalConsonant(verb)) return verb + verb.slice(-1) + "ing";
+        return verb + "ing";
+    }
+
+    function shouldDoubleFinalConsonant(word) {
+        return doubleFinalVerbs.has(word);
+    }
+
+    function getPresentSimpleText(verb, forms) {
+        if (verb === "be") return "I am · you/we/they are · he/she/it is";
+        return "I/you/we/they " + forms.base + " · he/she/it " + forms.third;
+    }
+
+    function getVerbForms(verb) {
+        return {
+            base: verb,
+            third: thirdPersonVerb(verb),
+            past: pastVerb(verb),
+            participle: participleVerb(verb),
+            ing: ingVerb(verb),
+            note: irregularVerbs[verb]?.note || "规则动词：过去式和过去分词通常加 -ed；进行时使用 -ing。"
+        };
+    }
+
+    function runVerbForms() {
+        const verb = cleanWord(document.getElementById("verbInput").value);
+        const hint = document.getElementById("verbHint");
+        if (!verb) {
+            ["formBase", "formThird", "formPast", "formParticiple", "formIng"].forEach(id => setText(id, ""));
+            hint.textContent = "";
+            return;
+        }
+        const forms = getVerbForms(verb);
+        setText("formBase", forms.base);
+        setText("formThird", forms.third);
+        setText("formPast", forms.past);
+        setText("formParticiple", forms.participle);
+        setText("formIng", forms.ing);
+        hint.textContent = forms.note;
+    }
+
+    function runTense() {
+        const verb = cleanWord(document.getElementById("tenseVerbInput").value);
+        const tense = document.getElementById("tenseSelect").value;
+        const result = document.getElementById("tenseResult");
+        const hint = document.getElementById("tenseHint");
+        if (!verb) {
+            result.textContent = "---";
+            hint.textContent = "";
+            return;
+        }
+        const forms = getVerbForms(verb);
+        const rows = {
+            presentSimple: { text: getPresentSimpleText(verb, forms), hint: "一般现在时：习惯、事实、规律。第三人称单数最容易出错。" },
+            presentContinuous: { text: "am/is/are " + forms.ing, hint: "现在进行时：此刻正在发生，或近期确定安排。" },
+            pastSimple: { text: forms.past, hint: "一般过去时：过去某时发生并结束。这里显示的是动词过去式。" },
+            pastContinuous: { text: "was/were " + forms.ing, hint: "过去进行时：过去某一刻正在进行。" },
+            futureSimple: { text: "will " + forms.base, hint: "一般将来时：预测、承诺、临时决定。will 后永远接动词原形。" },
+            futureContinuous: { text: "will be " + forms.ing, hint: "将来进行时：将来某一刻正在进行。" },
+            presentPerfect: { text: "have/has " + forms.participle, hint: "现在完成时：过去动作与现在有关，或到现在为止的经历/结果。" },
+            pastPerfect: { text: "had " + forms.participle, hint: "过去完成时：过去的过去。" },
+            futurePerfect: { text: "will have " + forms.participle, hint: "将来完成时：到将来某个时间点已经完成。" }
+        };
+        result.textContent = rows[tense].text;
+        hint.textContent = rows[tense].hint + " " + forms.note;
+    }
+
+    function normalizeSentence(value) {
+        return value
+            .toLowerCase()
+            .replace(/’/g, "'")
+            .replace(/[^a-z0-9' ]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function renderTrainingQuestion() {
+        const question = trainingQuestions[currentTrainingIndex];
+        if (!question) return;
+        setText("trainingLevel", question.level);
+        setText("trainingFocus", question.focus);
+        setText("trainingCounter", (currentTrainingIndex + 1) + " / " + trainingQuestions.length);
+        setText("trainingPrompt", question.prompt);
+        setText("trainingWords", question.words);
+        const answer = document.getElementById("trainingAnswer");
+        const feedback = document.getElementById("trainingFeedback");
+        if (answer) answer.value = "";
+        if (feedback) {
+            feedback.className = "feedback-box";
+            feedback.textContent = "先写一句英文，然后点击“检查答案”。";
+        }
+    }
+
+    function nextTrainingQuestion() {
+        currentTrainingIndex = (currentTrainingIndex + 1) % trainingQuestions.length;
+        renderTrainingQuestion();
+    }
+
+    function showTrainingAnswer() {
+        const question = trainingQuestions[currentTrainingIndex];
+        const feedback = document.getElementById("trainingFeedback");
+        feedback.className = "feedback-box ok";
+        feedback.textContent = "参考答案：" + question.answers[0] + "。提示：" + question.tip;
+    }
+
+    function checkTrainingAnswer() {
+        const question = trainingQuestions[currentTrainingIndex];
+        const raw = document.getElementById("trainingAnswer").value;
+        const answer = normalizeSentence(raw);
+        const feedback = document.getElementById("trainingFeedback");
+
+        if (!answer) {
+            feedback.className = "feedback-box warn";
+            feedback.textContent = "先输入一句英文。";
+            return;
+        }
+
+        const exact = question.answers.some(item => normalizeSentence(item) === answer);
+        if (exact) {
+            feedback.className = "feedback-box ok";
+            feedback.textContent = "正确。语法目标命中：" + question.focus + "。";
+            return;
+        }
+
+        const missing = question.keywords.filter(keyword => !answer.includes(keyword));
+        const warnings = [];
+
+        if (/\bdoes\s+\w+s\b/.test(answer)) warnings.push("用了 does 后，后面的实义动词要恢复原形。");
+        if (/\bdid\s+\w+(ed|s)\b/.test(answer)) warnings.push("用了 did 后，后面的实义动词要恢复原形。");
+        if (/\bwill\s+\w+s\b/.test(answer)) warnings.push("will 后面要接动词原形。");
+        if (question.focus === "间接疑问句" && answer.includes("where is the file")) warnings.push("间接疑问句应使用陈述语序：where the file is。");
+        if (question.focus === "There be" && answer.startsWith("have ")) warnings.push("这里要表达“某处存在”，更适合用 There be。");
+
+        if (missing.length === 0) {
+            feedback.className = warnings.length ? "feedback-box warn" : "feedback-box ok";
+            feedback.textContent = (warnings.length ? warnings.join(" ") : "核心成分都在，表达可能可接受。") + " 参考答案：" + question.answers[0] + "。";
+            return;
+        }
+
+        feedback.className = "feedback-box bad";
+        feedback.textContent = "还缺少这些核心信息：" + missing.join(", ") + "。"
+            + (warnings.length ? " " + warnings.join(" ") : "")
+            + " 提示：" + question.tip;
+    }
+
+    renderTrainingQuestion();
+</script>
+
+</body>
+</html>
